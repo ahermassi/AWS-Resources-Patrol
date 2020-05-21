@@ -1,11 +1,11 @@
-[Project]
-PROJECT: aws-resources-patrol
+[PROJECT]
+NAME: aws-resources-patrol
 DESCRIPTION: AWS Resources Patrol Stack
 
-[Variables]
+[AWS]
 S3_BUCKET: anouer-demo
 AWS_REGION: us-east-1
 RECIPIENTS: hermassi.anouer@gmail.com
 SENDER: hermassi.anouer@gmail.com
-ENABLE_MAIL: 1
+MAIL_ENABLED: 1
 
