@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: AWS Resources Patrol Stack
+
+Parameters:
+  AWSREGION:
+    Type: String
+    Default: us-east-1
+    Description: AWS Region
+  RECIPIENTS:
+    Type: String
+    Default: hermassi.anouer@gmail.com
+    Description: List of recipients
+  SENDER:
+    Type: String
+    Default: no-reply@gmail.com
+    Description: Sender
+  PROJECT:
+    Type: String
+    Default: aws-resources-patrol
+    Description: Project Name
+  MAILENABLED:
+    Type: Number
+    Default: 1
+    Description: Activate Email Notification
+
+Resources:
+  AWSResourcesPatrolFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: !Sub ${PROJECT}
+      Description: Alerting AWS users of running instances
+      Handler: main.handler
+      Runtime: python3.7
+      CodeUri: ./build
+      MemorySize: 256
+      Timeout: 300
+      Layers:
+        - !Ref layer
+      Environment:
+        Variables:
+          RECIPIENTS: !Ref RECIPIENTS
+          SENDER: !Ref SENDER
+          AWSREGION: !Ref AWSREGION
+          MAILENABLED: !Ref MAILENABLED
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+              - ce:GetCostAndUsage
+              - ec2:DescribeInstances
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeRegions
+              - glue:GetDevEndpoints
+              - iam:GetRole
+              - iam:ListAccountAliases
+              - rds:DescribeDBInstances
+              - redshift:DescribeClusters
+              - sagemaker:ListNotebookInstances
+              - ses:SendEmail
+              Resource: '*'
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Name: aws-resources-patrol-schedule
+            Schedule: cron(0 18 * * ? *)
+      Tags:
+        Project: !Ref PROJECT
+
+  layer:
+    Type: 'AWS::Serverless::LayerVersion'
+    Properties:
+      LayerName: boto3-layer
+      Description: boto3 layer
+      ContentUri: ./layer
+      CompatibleRuntimes:
+        - python3.6
+        - python3.7
+      RetentionPolicy: Retain
+
