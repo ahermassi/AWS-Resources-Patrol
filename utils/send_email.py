@@ -1,6 +1,6 @@
 def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
-               rds_running, redshift_running):
-    if not ec2_running and not rds_running and not redshift_running:
+               rds_running, redshift_running, elasticsearch_running):
+    if not ec2_running and not rds_running and not redshift_running and not elasticsearch_running:
         print('No running instances')
     elif int(mail_enabled) == 1:
         print('Sending email to: {}'.format(', '.join(recipients)))
@@ -74,7 +74,25 @@ def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients,
         else:
             redshift_table = """"""
 
-        html_body = header + ec2_table + rds_table + redshift_table
+        if elasticsearch_running:
+            elasticsearch_table = """
+                <h3>Created Elasticsearch Domain(s):</h3>
+                <table cellpadding="4" cellspacing="4">
+                <tr><td><strong>Domain Name</strong></td><td><strong>Domain ID</strong></td><td><strong>Created</strong></td>
+                <td><strong>Instance Type</strong></td><td><strong>Instance Count</strong></td>
+                <td><strong>Endpoints</strong></td></tr>
+                """ + \
+                        "\n".join([f"<tr><td>{domain['name']}</td><td>" f"{domain['id']}</td>"
+                                   f"<td>" f"{domain['created']}</td><td>{domain['instance_type']}</td>"
+                                   f"<td>{domain['instance_count']}</td><td>{domain['endpoints']}</td></tr>"
+                                   for domain in elasticsearch_running]) \
+                        + """
+                    </table>
+                    <p>Number of created Elasticsearch domains: """ + str(len(elasticsearch_running)) + """"""
+        else:
+            elasticsearch_table = """"""
+
+        html_body = header + ec2_table + rds_table + redshift_table + elasticsearch_table
 
         ses.send_email(
             Destination={
