@@ -40,8 +40,8 @@ def handler():
         rds_running = rds(region, rds_running)
         redshift_running = redshift(region, redshift_running)
 
-    # send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
-    #            rds_running)
+    send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
+               rds_running, redshift_running)
 
     print('Number of running EC2 instances: {} '.format(len(ec2_running)))
     print('Number of running RDS instances: {} '.format(len(rds_running)))

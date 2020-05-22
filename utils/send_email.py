@@ -1,5 +1,6 @@
-def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running, rds_running):
-    if not ec2_running and not rds_running:
+def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
+               rds_running, redshift_running):
+    if not ec2_running and not rds_running and not redshift_running:
         print('No running instances')
     elif int(mail_enabled) == 1:
         print('Sending email to: {}'.format(', '.join(recipients)))
@@ -55,7 +56,25 @@ def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients,
         else:
             rds_table = """"""
 
-        html_body = header + ec2_table + rds_table
+        if redshift_running:
+            redshift_table = """
+                <h3>Running Redshift Instance(s):</h3>
+                <table cellpadding="4" cellspacing="4">
+                <tr><td><strong>Name</strong></td><td><strong>Status</strong></td><td><strong>Type</strong></td>
+                <td><strong>Number of Nodes</strong></td><td><strong>Region</strong></td>
+                <td><strong>Creation Time</strong></td></tr>
+                """ + \
+                        "\n".join([f"<tr><td>{instance['identifier']}</td><td>" f"{instance['status']}</td>"
+                                   f"<td>" f"{instance['type']}</td><td>{instance['nodes']}</td><td>{instance['region']}</td>"
+                                   f"<td>{instance['creation_time']}</td>" f"</tr>"
+                                   for instance in redshift_running]) \
+                        + """
+                    </table>
+                    <p>Number of running Redshift instances: """ + str(len(redshift_running)) + """"""
+        else:
+            redshift_table = """"""
+
+        html_body = header + ec2_table + rds_table + redshift_table
 
         ses.send_email(
             Destination={
