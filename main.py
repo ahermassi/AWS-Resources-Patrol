@@ -1,33 +1,42 @@
 import configparser
+import logging
 import boto3
-from utils.verify_sender import verify_sender
-from utils.layer import layer
+from utils.init import init
+from services.ec2 import ec2
 
-if __name__ == '__main__':
+
+def handler():
     config = configparser.ConfigParser()
     config.read('config/config')
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
     aws_region = config['AWS']['AWS_REGION']
     session = boto3.Session(region_name=aws_region)
-    ec2 = session.client('ec2')
+    ec2_client = session.client('ec2')
     sts = session.client('sts')
     ses = session.client('ses')
 
-    sender = "Instance Watcher <" + config['AWS']['SENDER'] + ">"
+    sender = 'Instance Watcher <' + config['AWS']['SENDER'] + '>'
     recipients = config['AWS']['RECIPIENTS'].split()
     subject = '[AWS] AWS Resources Patrol - '
-    charset = "UTF-8"
+    charset = 'UTF-8'
     mail_enabled = config['AWS']['MAIL_ENABLED']
 
     account_id = sts.get_caller_identity().get('Account')
     account_alias = boto3.client('iam').list_account_aliases()['AccountAliases'][0]
-    regions = [region['RegionName'] for region in ec2.describe_regions()['Regions']]
+    regions = [region['RegionName'] for region in ec2_client.describe_regions()['Regions']]
 
-    # verify_sender(sender, ses)
-    layer()
+    # init(sender, ses)
 
     ec2_running = []
 
-    # for region in regions:
-    #     # logging.info("Checking running instances in: %s", region)
-    #     ec2_running = ec2(region, ec2_running)
+    for region in ['us-east-1']:
+        print('Checking running instances in: {}'.format(region))
+        ec2_running = ec2(region, ec2_running)
+
+    print('Number of running EC2 instances: {} '.format(len(ec2_running)))
+
+
+if __name__ == '__main__':
+    handler()
+
