@@ -3,6 +3,7 @@ import logging
 import boto3
 from utils.init import init
 from services.ec2 import ec2
+from services.rds import rds
 from utils.send_email import send_email
 
 
@@ -13,7 +14,6 @@ def handler():
 
     aws_region = config['AWS']['AWS_REGION']
     session = boto3.Session(region_name=aws_region)
-    ec2_client = session.client('ec2')
     sts = session.client('sts')
     ses = session.client('ses')
 
@@ -25,19 +25,22 @@ def handler():
 
     account_id = sts.get_caller_identity().get('Account')
     account_alias = boto3.client('iam').list_account_aliases()['AccountAliases'][0]
-    regions = [region['RegionName'] for region in ec2_client.describe_regions()['Regions']]
+    regions = [region['RegionName'] for region in session.client('ec2').describe_regions()['Regions']]
 
     # init(sender, ses)
 
     ec2_running = []
+    rds_running = []
 
     for region in ['us-east-1']:
         print('Checking running instances in: {}'.format(region))
         ec2_running = ec2(region, ec2_running)
+        rds_running = rds(region, rds_running)
 
-    send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running)
+    # send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running)
 
     print('Number of running EC2 instances: {} '.format(len(ec2_running)))
+    print('Number of running RDS instances: {} '.format(len(rds_running)))
 
 
 if __name__ == '__main__':

@@ -12,19 +12,19 @@ def ec2(region, ec2_running):
             id = instance['InstanceId']
             launch_time = instance['LaunchTime'].strftime("%Y-%m-%d %H:%M:%S")
             tags = instance['Tags'] if 'Tags' in instance else []
-            instance_name = "unnamed"
+            name = "unnamed"
             for tag in tags:
                 if tag['Key'] == 'Name':
-                    instance_name = tag['Value']
+                    name = tag['Value']
             if state == 'running':
-                ec2_running.append({
-                    'name': instance_name,
+                instance_info = {
+                    'name': name,
                     'state': state,
                     'type': type,
                     'id': id,
                     'region': region,
                     'launch_time': launch_time
-                })
-                print("{} {} {} {} {} {}".format(instance_name, state, type, id, region,
-                                                 launch_time))
+                }
+                ec2_running.append(instance_info)
+                print('EC2 = ' + str(instance_info))
     return ec2_running
