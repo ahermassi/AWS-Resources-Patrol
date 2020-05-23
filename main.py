@@ -1,5 +1,6 @@
 import configparser
 import boto3
+from services.costs import costs
 from services.ec2 import ec2
 from services.rds import rds
 from services.redshift import redshift
@@ -16,7 +17,7 @@ def handler():
     sts = session.client('sts')
     ses = session.client('ses')
 
-    sender = 'Instance Watcher <' + config['AWS']['SENDER'] + '>'
+    sender = 'AWS Resources Patrol <' + config['AWS']['SENDER'] + '>'
     recipients = config['AWS']['RECIPIENTS'].split()
     subject = '[AWS] AWS Resources Patrol - '
     charset = 'UTF-8'
@@ -30,6 +31,7 @@ def handler():
     rds_running = []
     redshift_running = []
     elasticsearch_running = []
+    cost = costs(aws_region)
 
     for region in regions:
         print('Checking running instances in: {}'.format(region))
@@ -38,7 +40,7 @@ def handler():
         redshift_running = redshift(region, redshift_running)
         elasticsearch_running = es(region, elasticsearch_running)
 
-    send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
+    send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, cost, ec2_running,
                rds_running, redshift_running, elasticsearch_running)
 
     print('Number of running EC2 instances: {} '.format(len(ec2_running)))

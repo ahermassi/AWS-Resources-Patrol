@@ -1,4 +1,4 @@
-def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, ec2_running,
+def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients, subject, charset, cost, ec2_running,
                rds_running, redshift_running, elasticsearch_running):
     if not ec2_running and not rds_running and not redshift_running and not elasticsearch_running:
         print('No running instances')
@@ -17,7 +17,8 @@ def send_email(account_id, account_alias, mail_enabled, ses, sender, recipients,
                 </head>
                 <body>
                     <h1>AWS Resources Patrol</h1>
-                    <p>AWS Account ID: """ + account_id + """ - """ + account_alias + """</p>"""
+                    <p>AWS Account ID: """ + account_id + """ - """ + account_alias + """<br>Month-to-Date Spend:$""" + \
+                 str(cost) + """</p>"""
 
         if ec2_running:
             ec2_table = """
