@@ -53,12 +53,10 @@ Resources:
               - ec2:DescribeInstances
               - ec2:DescribeInstanceStatus
               - ec2:DescribeRegions
-              - glue:GetDevEndpoints
               - iam:GetRole
               - iam:ListAccountAliases
               - rds:DescribeDBInstances
               - redshift:DescribeClusters
-              - sagemaker:ListNotebookInstances
               - ses:SendEmail
               Resource: '*'
       Events:

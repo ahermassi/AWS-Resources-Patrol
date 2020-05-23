@@ -1,7 +1,5 @@
 import configparser
-import logging
 import boto3
-from utils.init import init
 from services.ec2 import ec2
 from services.rds import rds
 from services.redshift import redshift
@@ -12,7 +10,6 @@ from utils.send_email import send_email
 def handler():
     config = configparser.ConfigParser()
     config.read('config/config')
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
     aws_region = config['AWS']['AWS_REGION']
     session = boto3.Session(region_name=aws_region)
@@ -29,14 +26,12 @@ def handler():
     account_alias = boto3.client('iam').list_account_aliases()['AccountAliases'][0]
     regions = [region['RegionName'] for region in session.client('ec2').describe_regions()['Regions']]
 
-    # init(sender, ses)
-
     ec2_running = []
     rds_running = []
     redshift_running = []
     elasticsearch_running = []
 
-    for region in ['us-east-1']:
+    for region in regions:
         print('Checking running instances in: {}'.format(region))
         ec2_running = ec2(region, ec2_running)
         rds_running = rds(region, rds_running)
